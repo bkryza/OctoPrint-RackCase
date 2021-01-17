@@ -1,0 +1,28 @@
+<div class="control-group">
+    <h5>
+        <label class="checkbox">
+          <input type="checkbox" data-bind="checked: $root.lightState"> {{ _('Case light') }}
+        </label>
+    </h5>
+</div>
+<div>
+     <span data-bind="text: $root.temperature, attr: {title: 'Temperature' }"> </span>
+     <span class="add-on">&deg;C</span>
+</div>
+<div>
+     <span data-bind="text: $root.humidity, attr: {title: 'Humidity' }"> </span>
+     <span class="add-on">%</span>
+</div>
+<div>
+     <span data-bind="text: $root.voc, attr: {title: 'VOC'}"> </span>
+     <span class="add-on">PPM</span>
+</div>
+
+<div class="control-group">
+      <label class="control-label">{{ _('Case fan speed') }}</label>
+      <div class="controls">
+        <input type="text" class="input" data-bind="value: fanSpeed">
+        <button class="btn btn-primary" data-bind="click: setFanSpeed">{{ _('Set') }}</button>
+      </div>
+</div>
+
