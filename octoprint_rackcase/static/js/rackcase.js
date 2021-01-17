@@ -16,11 +16,15 @@ $(function() {
 
         self.fanSpeed = ko.observable(0);
 
-        self.temperature = ko.observable(10.0);
+	self.temperature = ko.observable(0.0);
 
-        self.humidity = ko.observable(50.0);
+        self.humidity = ko.observable(0.0);
 
-        self.voc = ko.observable(15.0);
+        self.voc = ko.observable(0.0);
+
+	self.co2 = ko.observable(0.0);
+
+	self.pressure = ko.observable(0.0);
 
         self.onBeforeBinding = function() {
         }
@@ -34,10 +38,26 @@ $(function() {
                 return;
             }
 
-            self.temperature = data.temperature;
-            self.humidity = data.humidity;
-            self.voc = data.voc;
+            self.temperature(data.temperature);
+            self.humidity(data.humidity);
+	    self.pressure(data.pressure);
+            self.voc(data.voc);
+            self.co2(data.co2);
         };
+
+	self.lightState.subscribe(function(newValue) {
+	   var request = { command: "light_state", state: newValue };
+	   $.ajax({
+		url: "/api/plugin/rackcase",
+		type: "POST",
+		dataType: "json",
+		data: request,
+		success: function (data) {
+                  alert("The lightstate is " + newValue);
+		  self.getUpdateUI();  
+		}
+	   });           
+        });
     }
 
     /* view model class, parameters for constructor, container to bind to

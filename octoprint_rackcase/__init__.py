@@ -11,12 +11,13 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from octoprint.util import RepeatedTimer
+import time
 import board
 import busio
 import digitalio
 import adafruit_ccs811
 import adafruit_bme280
-from adafruit_pca9685 import PCA9685
+import adafruit_pca9685
 
 
 class RackcasePlugin(
@@ -24,6 +25,7 @@ class RackcasePlugin(
     octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.SimpleApiPlugin,
 ):
     def __init__(self):
         self._checkSensors = None
@@ -31,21 +33,45 @@ class RackcasePlugin(
         self._ccs811_reset.direction = digitalio.Direction.OUTPUT
         self.init_ccs811()
 
-        self._light_control_button = digitalio.DigitalOut(board.D18)
         self._i2c_bus = busio.I2C(board.SCL, board.SDA)
-        self._ccs811 = adafruit_ccs811.CCS811(i2c_bus, address=0x5B)
+        self._ccs811 = adafruit_ccs811.CCS811(self._i2c_bus, address=0x5B)
         self._bme280 = adafruit_bme280.Adafruit_BME280_I2C(
-            i2c_bus, address=0x76
+            self._i2c_bus, address=0x76
         )
-        self._pca = PCA9685(i2c_bus)
-        self._pca.frequency = 60
+        self._pca = adafruit_pca9685.PCA9685(self._i2c_bus)
+        self._pca.frequency = 1000
 
-    def init_ccs811():
+    def get_api_commands(self):
+        return dict(
+            light_state=["state"],
+        )
+    
+    def on_api_command(self, command, data):
+        import flask
+        if command == "light_state":
+            light_state = False
+            if "state" in data:
+                light_state = data["state"]
+            self._logger.info("light_state command called - {light_state}".format(light_state=light_state))
+            self.light_switch(light_state)
+
+    def on_api_get(self, request):
+        import flask
+        light_state = (self._pca.channels[8].duty_cycle == 0x0000)
+        return flask.jsonify(light_state=light_state)
+
+    def init_ccs811(self):
         self._ccs811_reset.value = True
         time.sleep(0.1)
         self._ccs811_reset.value = False
         time.sleep(0.1)
-        ccs811_reset.value = True
+        self._ccs811_reset.value = True
+
+    def light_switch(self, state):
+        if state:
+            self._pca.channels[8].duty_cycle = 0xFFFF
+        else:
+            self._pca.channels[8].duty_cycle = 0x0000
 
     def on_after_startup(self):
         self.startTimer(5.0)
@@ -89,23 +115,31 @@ class RackcasePlugin(
         )
 
     def startTimer(self, interval):
-        self._logger.info("STARTING SENSORS CHECK TIMER")
+        self._logger.debug("Starting sensors check timer")
         self._checkSensorsTimer = RepeatedTimer(
             interval, self.checkSensors, None, None, True
         )
         self._checkSensorsTimer.start()
 
     def checkSensors(self):
-        self._logger.info("Updating rackcase sensors")
+        self._logger.debug("Updating rackcase sensors")
+        temperature = round(self._bme280.temperature, 2)
+        humidity = round(self._bme280.relative_humidity, 2)
+        pressure = round(self._bme280.pressure, 2)
+
         while not self._ccs811.data_ready:
             pass
+
+        voc = round(self._ccs811.tvoc, 2)
+        co2 = round(self._ccs811.eco2, 2)
         self._plugin_manager.send_plugin_message(
             self._identifier,
             dict(
-                temperature=self._bme280.temperature,
-                humidity=self._bme280.humidity,
-                voc=self._cs811.tvoc,
-                co2=self._cs811.eco2,
+                temperature=temperature,
+                humidity=humidity,
+                pressure=pressure,
+                voc=voc,
+                co2=co2,
             ),
         )
 

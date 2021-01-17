@@ -6,16 +6,29 @@
     </h5>
 </div>
 <div>
+     <span >Temperature: </span>
      <span data-bind="text: $root.temperature, attr: {title: 'Temperature' }"> </span>
      <span class="add-on">&deg;C</span>
 </div>
 <div>
+     <span >Humidity: </span>
      <span data-bind="text: $root.humidity, attr: {title: 'Humidity' }"> </span>
      <span class="add-on">%</span>
 </div>
 <div>
+     <span >Pressure: </span>
+     <span data-bind="text: $root.pressure, attr: {title: 'Pressure' }"> </span>
+     <span class="add-on">hPa</span>
+</div>
+<div>
+     <span >VOC: </span>
      <span data-bind="text: $root.voc, attr: {title: 'VOC'}"> </span>
      <span class="add-on">PPM</span>
+</div>
+<div>
+     <span >CO2: </span>
+     <span data-bind="text: $root.co2, attr: {title: 'CO2'}"> </span>
+     <span class="add-on"> PPM</span>
 </div>
 
 <div class="control-group">
