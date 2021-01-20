@@ -44,6 +44,7 @@ class RackcasePlugin(
     def get_api_commands(self):
         return dict(
             light_state=["state"],
+            fan_speed=["speed"],
         )
     
     def on_api_command(self, command, data):
@@ -54,6 +55,14 @@ class RackcasePlugin(
                 light_state = data["state"]
             self._logger.info("light_state command called - {light_state}".format(light_state=light_state))
             self.light_switch(light_state)
+            return
+        if command == "fan_speed":
+            fan_speed = 0
+            if "speed" in data:
+                fan_speed = data["speed"]
+            self._logger.info("fan_speed command called - {fan_speed}".format(fan_speed=fan_speed))
+            self.fan_speed(fan_speed)
+            return
 
     def on_api_get(self, request):
         import flask
@@ -73,8 +82,16 @@ class RackcasePlugin(
         else:
             self._pca.channels[8].duty_cycle = 0x0000
 
+    def fan_speed(self, speed):
+        if speed < 0:
+            speed = 0
+        if speed > 100:
+            speed = 100
+
+        self._pca.channels[9].duty_cycle = int(speed*0xFFFF/100)
+
     def on_after_startup(self):
-        self.startTimer(5.0)
+        self.startTimer(15.0)
 
     ##~~ SettingsPlugin mixin
 

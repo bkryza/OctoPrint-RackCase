@@ -30,7 +30,17 @@ $(function() {
         }
 
         self.setFanSpeed = function() {
-
+	   var request = { command: "fan_speed", speed: self.fanSpeed};
+	   $.ajax({
+		url: "/api/plugin/rackcase",
+		type: "POST",
+		dataType: "application/json",
+		data: request,
+		success: function (data) {
+                  alert("The fanspeed is " + self.fanSpeed);
+		  self.getUpdateUI();  
+		}
+	   });           
         };
 
         self.onDataUpdaterPluginMessage = function(plugin, data) {
@@ -50,7 +60,7 @@ $(function() {
 	   $.ajax({
 		url: "/api/plugin/rackcase",
 		type: "POST",
-		dataType: "json",
+		dataType: "application/json",
 		data: request,
 		success: function (data) {
                   alert("The lightstate is " + newValue);
