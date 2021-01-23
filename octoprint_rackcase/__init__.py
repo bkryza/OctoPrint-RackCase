@@ -17,7 +17,7 @@ import busio
 import digitalio
 import adafruit_ccs811
 import adafruit_bme280
-import adafruit_pca9685
+import pigpio
 
 
 class RackcasePlugin(
@@ -34,17 +34,25 @@ class RackcasePlugin(
         self.init_ccs811()
 
         self._i2c_bus = busio.I2C(board.SCL, board.SDA)
-        self._ccs811 = adafruit_ccs811.CCS811(self._i2c_bus, address=0x5B)
+        #self._ccs811 = adafruit_ccs811.CCS811(self._i2c_bus, address=0x5B)
         self._bme280 = adafruit_bme280.Adafruit_BME280_I2C(
             self._i2c_bus, address=0x76
         )
-        self._pca = adafruit_pca9685.PCA9685(self._i2c_bus)
-        self._pca.frequency = 1000
+        self.R_PIN = 8
+        self.G_PIN = 7
+        self.B_PIN = 13
+        self.FAN_PIN = 12
+        self.LIGHT_PIN = 16
+        self.pgpio = pigpio.pi()
+        self.pgpio.set_PWM_frequency(self.LIGHT_PIN, 120)
+        self.pgpio.set_PWM_frequency(self.FAN_PIN, 25000)
+        self.pgpio.set_PWM_dutycycle(self.FAN_PIN, 50)
 
     def get_api_commands(self):
         return dict(
             light_state=["state"],
             fan_speed=["speed"],
+            fan_rgb=["r", "g", "b"],
         )
     
     def on_api_command(self, command, data):
@@ -54,15 +62,25 @@ class RackcasePlugin(
             if "state" in data:
                 light_state = data["state"]
             self._logger.info("light_state command called - {light_state}".format(light_state=light_state))
-            self.light_switch(light_state)
+            self.pgpio.write(self.LIGHT_PIN, light_state)
             return
         if command == "fan_speed":
             fan_speed = 0
             if "speed" in data:
                 fan_speed = data["speed"]
             self._logger.info("fan_speed command called - {fan_speed}".format(fan_speed=fan_speed))
-            self.fan_speed(fan_speed)
+            self.pgpio.set_PWM_dutycycle(12,max(fan_speed, 255))
             return
+        if command == "fan_rgb":
+            r = data["r"]
+            g = data["g"]
+            b = data["b"]
+            self._logger.info("fan_rgb command called -[{}, {}, {}]".format(r, g, b))
+            self.pgpio.set_PWM_dutycycle(self.R_PIN, 255-max(r, 255))
+            self.pgpio.set_PWM_dutycycle(self.G_PIN, 255-max(g, 255))
+            self.pgpio.set_PWM_dutycycle(self.B_PIN, 255-max(b, 255))
+            return
+
 
     def on_api_get(self, request):
         import flask
@@ -75,20 +93,6 @@ class RackcasePlugin(
         self._ccs811_reset.value = False
         time.sleep(0.1)
         self._ccs811_reset.value = True
-
-    def light_switch(self, state):
-        if state:
-            self._pca.channels[8].duty_cycle = 0xFFFF
-        else:
-            self._pca.channels[8].duty_cycle = 0x0000
-
-    def fan_speed(self, speed):
-        if speed < 0:
-            speed = 0
-        if speed > 100:
-            speed = 100
-
-        self._pca.channels[9].duty_cycle = int(speed*0xFFFF/100)
 
     def on_after_startup(self):
         self.startTimer(15.0)
@@ -144,11 +148,11 @@ class RackcasePlugin(
         humidity = round(self._bme280.relative_humidity, 2)
         pressure = round(self._bme280.pressure, 2)
 
-        while not self._ccs811.data_ready:
-            pass
+        #while not self._ccs811.data_ready:
+        #    pass
 
-        voc = round(self._ccs811.tvoc, 2)
-        co2 = round(self._ccs811.eco2, 2)
+        voc = 1#round(self._ccs811.tvoc, 2)
+        co2 = 1#round(self._ccs811.eco2, 2)
         self._plugin_manager.send_plugin_message(
             self._identifier,
             dict(
