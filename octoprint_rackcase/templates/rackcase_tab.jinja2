@@ -6,36 +6,55 @@
     </h5>
 </div>
 <div>
-     <span >Temperature: </span>
-     <span data-bind="text: $root.temperature, attr: {title: 'Temperature' }"> </span>
-     <span class="add-on">&deg;C</span>
+    <span>Temperature: </span>
+    <span data-bind="text: $root.temperature, attr: {title: 'Temperature' }"> </span>
+    <span class="add-on">&deg;C</span>
 </div>
 <div>
-     <span >Humidity: </span>
-     <span data-bind="text: $root.humidity, attr: {title: 'Humidity' }"> </span>
-     <span class="add-on">%</span>
+    <span>Humidity: </span>
+    <span data-bind="text: $root.humidity, attr: {title: 'Humidity' }"> </span>
+    <span class="add-on">%</span>
 </div>
 <div>
-     <span >Pressure: </span>
-     <span data-bind="text: $root.pressure, attr: {title: 'Pressure' }"> </span>
-     <span class="add-on">hPa</span>
+    <span>Pressure: </span>
+    <span data-bind="text: $root.pressure, attr: {title: 'Pressure' }"> </span>
+    <span class="add-on">hPa</span>
 </div>
 <div>
-     <span >VOC: </span>
-     <span data-bind="text: $root.voc, attr: {title: 'VOC'}"> </span>
-     <span class="add-on">PPM</span>
+    <span>VOC: </span>
+    <span data-bind="text: $root.voc, attr: {title: 'VOC'}"> </span>
+    <span class="add-on">PPM</span>
 </div>
 <div>
-     <span >CO2: </span>
-     <span data-bind="text: $root.co2, attr: {title: 'CO2'}"> </span>
-     <span class="add-on"> PPM</span>
+    <span>CO2: </span>
+    <span data-bind="text: $root.co2, attr: {title: 'CO2'}"> </span>
+    <span class="add-on"> PPM</span>
 </div>
 
 <div class="control-group">
-      <label class="control-label">{{ _('Case fan speed') }}</label>
-      <div class="controls">
-        <input type="text" class="input" data-bind="value: $root.fanSpeed">
-        <button class="btn btn-primary" data-bind="click: setFanSpeed">{{ _('Set') }}</button>
-      </div>
+    <label class="control-label">{{ _('Case fan speed') }}</label>
+    <input type="range" style="width: 35em" min="1" max="255" data-bind="value: $root.fanSpeed, valueUpdate: 'input'"
+    />
+    <span data-bind="text: $root.fanSpeed"></span>
 </div>
 
+<div class="control-group">
+    <label class="control-label">{{ _('Fan Red') }}</label>
+    <div class="controls">
+        <input type="range" style="width: 35em" min="1" max="255" data-bind="value: $root.fanRed, valueUpdate: 'input'"
+        />
+        <span data-bind="text: $root.fanRed"></span>
+    </div>
+    <label class="control-label">{{ _('Fan Green') }}</label>
+    <div class="controls">
+        <input type="range" style="width: 35em" min="1" max="255" data-bind="value: $root.fanGreen, valueUpdate: 'input'"
+        />
+        <span data-bind="text: $root.fanGreen"></span>
+    </div>
+    <label class="control-label">{{ _('Fan Blue') }}</label>
+    <div class="controls">
+        <input type="range" style="width: 35em" min="1" max="255" data-bind="value: $root.fanBlue, valueUpdate: 'input'"
+        />
+        <span data-bind="text: $root.fanBlue"></span>
+    </div>
+</div>
