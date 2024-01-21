@@ -145,24 +145,24 @@ class RackcasePlugin(
         self._logger.debug("Updating rackcase sensors")
         temperature = round(self._hts.temperature, 2)
         humidity = round(self._hts.relative_humidity, 2)
-        pressure = 0 #round(self._bme280.pressure, 2)
+        pressure = 0
 
 
-        voc = 0 #round(self._ccs811.tvoc, 2)
-        co2 = 0 #round(self._ccs811.eco2, 2)
+        voc = 0
+        co2 = 0
 
-		try:
-			timeout = time.time() + 10
-			while not self._ccs811.data_ready:
-				if time.time() > timeout:
-					self._logger.debug("CCS811 TIMED OUT...")
-				pass
+        try:
+            timeout = time.time() + 10
+            while not self._ccs811.data_ready:
+                if time.time() > timeout:
+                    self._logger.debug("CCS811 TIMED OUT...")
+                pass
 
-			voc = round(self._ccs811.tvoc, 2)
-			co2 = round(self._ccs811.eco2, 2)
-		except:
-			self._logger.info("Failed getting CCS811 reading!!!")
-			pass
+            voc = round(self._ccs811.tvoc, 2)
+            co2 = round(self._ccs811.eco2, 2)
+        except:
+            self._logger.info("Failed getting CCS811 reading!!!")
+            pass
 
         self._plugin_manager.send_plugin_message(
             self._identifier,
