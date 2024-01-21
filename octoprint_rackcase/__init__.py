@@ -35,7 +35,6 @@ class RackcasePlugin(
 
         self._i2c_bus = busio.I2C(board.SCL, board.SDA)
         self._ccs811 = adafruit_ccs811.CCS811(self._i2c_bus, address=0x5B)
-        #self._bme280 = adafruit_bme280.Adafruit_BME280_I2C(self._i2c_bus, address=0x76)
         self._hts = adafruit_hts221.HTS221(_i2c_bus)
 
         self.R_PIN = 8
@@ -44,7 +43,6 @@ class RackcasePlugin(
         self.FAN_PIN = 12
         self.LIGHT_PIN = 23
         self.pgpio = pigpio.pi()
-        #self.pgpio.set_PWM_frequency(self.LIGHT_PIN, 120)
         self.pgpio.set_PWM_frequency(self.FAN_PIN, 25000)
         self.pgpio.set_PWM_dutycycle(self.FAN_PIN, 50)
 
@@ -84,7 +82,7 @@ class RackcasePlugin(
 
     def on_api_get(self, request):
         import flask
-        light_state = (self._pca.channels[8].duty_cycle == 0x0000)
+        light_state = pgpio.read(self.LIGHT_PIN)
         return flask.jsonify(light_state=light_state)
 
     def init_ccs811(self):
@@ -93,6 +91,7 @@ class RackcasePlugin(
         self._ccs811_reset.value = False
         time.sleep(0.1)
         self._ccs811_reset.value = True
+        time.sleep(0.1)
 
     def on_after_startup(self):
         self.startTimer(15.0)
@@ -148,15 +147,23 @@ class RackcasePlugin(
         humidity = round(self._hts.relative_humidity, 2)
         pressure = 0 #round(self._bme280.pressure, 2)
 
-        #timeout = time.time() + 10
-        #while not self._ccs811.data_ready:
-        #    if time.time() > timeout:
-        #        self._logger.debug("CCS811 TIMED OUT...")
-        #        return
-        #    pass
 
         voc = 0 #round(self._ccs811.tvoc, 2)
         co2 = 0 #round(self._ccs811.eco2, 2)
+
+		try:
+			timeout = time.time() + 10
+			while not self._ccs811.data_ready:
+				if time.time() > timeout:
+					self._logger.debug("CCS811 TIMED OUT...")
+				pass
+
+			voc = round(self._ccs811.tvoc, 2)
+			co2 = round(self._ccs811.eco2, 2)
+		except:
+			self._logger.info("Failed getting CCS811 reading!!!")
+			pass
+
         self._plugin_manager.send_plugin_message(
             self._identifier,
             dict(
