@@ -28,6 +28,7 @@ class RackcasePlugin(
     octoprint.plugin.SimpleApiPlugin,
 ):
     def __init__(self):
+        self._logger.info("Initializing RackCase plugin...")
         self._checkSensors = None
         self._ccs811_reset = digitalio.DigitalInOut(board.D18)
         self._ccs811_reset.direction = digitalio.Direction.OUTPUT
@@ -95,6 +96,7 @@ class RackcasePlugin(
         self._ccs811_reset.value = True
 
     def on_after_startup(self):
+        self._logger.info("Started RackCase plugin!!!")
         self.startTimer(15.0)
 
     ##~~ SettingsPlugin mixin
@@ -185,6 +187,7 @@ __plugin_name__ = "Rackcase Plugin"
 # __plugin_pythoncompat__ = ">=2.7,<3" # only python 2
 __plugin_pythoncompat__ = ">=3,<4"  # only python 3
 # __plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
+__plugin_implementation__ = RackcasePlugin()
 
 
 def __plugin_load__():
