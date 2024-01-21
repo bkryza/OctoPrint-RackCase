@@ -14,7 +14,7 @@ plugin_package = "octoprint_rackcase"
 plugin_name = "OctoPrint-RackCase"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "0.1.0"
+plugin_version = "0.1.1"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
@@ -33,7 +33,7 @@ plugin_url = "https://github.com/bkryza/OctoPrint-RackCase"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ['Adafruit_CircuitPython_CCS811', 'Adafruit_CircuitPython_BME280', 'pigpio']
+plugin_requires = ['adafruit-circuitpython-ccs811', 'adafruit-circuitpython-hts221', 'pigpio']
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point

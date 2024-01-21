@@ -16,7 +16,7 @@ import board
 import busio
 import digitalio
 import adafruit_ccs811
-import adafruit_bme280
+import adafruit_hts221
 import pigpio
 
 
@@ -35,16 +35,16 @@ class RackcasePlugin(
 
         self._i2c_bus = busio.I2C(board.SCL, board.SDA)
         self._ccs811 = adafruit_ccs811.CCS811(self._i2c_bus, address=0x5B)
-        self._bme280 = adafruit_bme280.Adafruit_BME280_I2C(
-            self._i2c_bus, address=0x76
-        )
+        #self._bme280 = adafruit_bme280.Adafruit_BME280_I2C(self._i2c_bus, address=0x76)
+        self._hts = adafruit_hts221.HTS221(_i2c_bus)
+
         self.R_PIN = 8
         self.G_PIN = 7
         self.B_PIN = 25
         self.FAN_PIN = 12
-        self.LIGHT_PIN = 16
+        self.LIGHT_PIN = 23
         self.pgpio = pigpio.pi()
-        self.pgpio.set_PWM_frequency(self.LIGHT_PIN, 120)
+        #self.pgpio.set_PWM_frequency(self.LIGHT_PIN, 120)
         self.pgpio.set_PWM_frequency(self.FAN_PIN, 25000)
         self.pgpio.set_PWM_dutycycle(self.FAN_PIN, 50)
 
@@ -144,19 +144,19 @@ class RackcasePlugin(
 
     def checkSensors(self):
         self._logger.debug("Updating rackcase sensors")
-        temperature = round(self._bme280.temperature, 2)
-        humidity = round(self._bme280.relative_humidity, 2)
-        pressure = round(self._bme280.pressure, 2)
+        temperature = round(self._hts.temperature, 2)
+        humidity = round(self._hts.relative_humidity, 2)
+        pressure = 0 #round(self._bme280.pressure, 2)
 
-        timeout = time.time() + 10
-        while not self._ccs811.data_ready:
-            if time.time() > timeout:
-                self._logger.debug("CCS811 TIMED OUT...")
-                return
-            pass
+        #timeout = time.time() + 10
+        #while not self._ccs811.data_ready:
+        #    if time.time() > timeout:
+        #        self._logger.debug("CCS811 TIMED OUT...")
+        #        return
+        #    pass
 
-        voc = round(self._ccs811.tvoc, 2)
-        co2 = round(self._ccs811.eco2, 2)
+        voc = 0 #round(self._ccs811.tvoc, 2)
+        co2 = 0 #round(self._ccs811.eco2, 2)
         self._plugin_manager.send_plugin_message(
             self._identifier,
             dict(
@@ -169,7 +169,7 @@ class RackcasePlugin(
                 fanRed=self.pgpio.get_PWM_dutycycle(self.R_PIN),
                 fanGreen=self.pgpio.get_PWM_dutycycle(self.G_PIN),
                 fanBlue=self.pgpio.get_PWM_dutycycle(self.B_PIN),
-                lightState=self.pgpio.get_PWM_dutycycle(self.LIGHT_PIN),
+                lightState=self.pgpio.read(self.LIGHT_PIN),
             ),
         )
 
@@ -191,7 +191,7 @@ def __plugin_load__():
     global __plugin_implementation__
     __plugin_implementation__ = RackcasePlugin()
 
-    global __plugin_hooks__
+    global __plugin_hooks_read_
     __plugin_hooks__ = {
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
     }
