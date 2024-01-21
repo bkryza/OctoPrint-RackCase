@@ -35,7 +35,7 @@ class RackcasePlugin(
 
         self._i2c_bus = busio.I2C(board.SCL, board.SDA)
         self._ccs811 = adafruit_ccs811.CCS811(self._i2c_bus, address=0x5B)
-        self._hts = adafruit_hts221.HTS221(_i2c_bus)
+        self._hts = adafruit_hts221.HTS221(self._i2c_bus)
 
         self.R_PIN = 8
         self.G_PIN = 7
@@ -82,7 +82,7 @@ class RackcasePlugin(
 
     def on_api_get(self, request):
         import flask
-        light_state = pgpio.read(self.LIGHT_PIN)
+        light_state = self.pgpio.read(self.LIGHT_PIN)
         return flask.jsonify(light_state=light_state)
 
     def init_ccs811(self):
@@ -146,7 +146,6 @@ class RackcasePlugin(
         temperature = round(self._hts.temperature, 2)
         humidity = round(self._hts.relative_humidity, 2)
         pressure = 0
-
 
         voc = 0
         co2 = 0
